@@ -98,10 +98,10 @@ def login():
                                 return render_template('dashboard.html', isLogIn=False, users=users)
                         else:
                             sleep(1)
-                except RequestTimedOut as e:
+                except RequestTimedOut:
                     errorMsg = {'msg' : 'Timed Out. Please try again.', 'stackTrace' : traceback.format_exc()}
                     return render_template('home.html', form=form, errorMsg=errorMsg)
-        except EntityNotFound as e:
+        except EntityNotFound:
             errorMsg = {'msg' : 'Sorry, this username cannot be found.', 'stackTrace' : traceback.format_exc()}
             return render_template('home.html', form=form, errorMsg=errorMsg)
 
