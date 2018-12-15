@@ -79,9 +79,9 @@ def contact():
     return render_template('contact.html')
 
         
-@app.route('/webhook', methods = ['POST'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
-    print 'Inside login'
+    print 'Inside the Webhook Method'
     print '###############'
     print 'request data'
     print request.data
@@ -94,7 +94,19 @@ def webhook():
     print '###############'
     print 'request path'
     print request.path
-    return "webhook page"
+    
+    package = service_client.handle_webhook(request.data, request.headers, request.method, request.path)
+    if isinstance(package, AuthorizationResponse):
+        if package.authorized is True:
+            # User accepted the auth, now create a session
+            doSomething = "access granted"
+        else:
+            # User denied the auth
+            doSomething = "access denied"
+    elif isinstance(package, SessionEndRequest):
+        doSomething = "log out"
+        
+    return doSomething
 
 
 if __name__ == '__main__':
