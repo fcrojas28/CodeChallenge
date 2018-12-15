@@ -6,12 +6,19 @@ from launchkey.factories import ServiceFactory, OrganizationFactory
 from launchkey.exceptions import RequestTimedOut, EntityNotFound
 from launchkey.entities.service import AuthorizationResponse, SessionEndRequest
 from time import sleep
+import sqlite3
+import datetime
 import re
+
+DATABASE = 'users.db'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = 'not so secret key'
 
+def connect_db():
+    return sqlite3.connect(app.config['DATABASE'])
+    
 # Since there is a req when creating an user from Launchkey mobile app
 # i am making sure that validation is apply before submitting the auth request
 def validChar(form, field):
@@ -55,11 +62,33 @@ def login():
                     while response is None:
                         response = service_client.get_authorization_response(auth_request_id)
                         if response is not None:
+                            
+                            
+                            # Write into the db the user activity
+                            
+                            if response.authorized is True:
+                                db = connect_db()
+                                db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "granted"))
+                                db.commit()
+                                db.close()
+                            else:
+                                db = connect_db()
+                                db = connect_db()
+                                db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "denied"))
+                                db.commit()
+                                db.close()
+                            
+                            # get all user activity from the DB
+                            db = connect_db()
+                            myResultSet = db.execute("SELECT username, dt, access FROM users WHERE username=:targetUsername",{'targetUsername':username})
+                            users = [dict(username=row[0],dateTime=row[1],access=row[2]) for row in myResultSet.fetchall()]
+                            db.close()
+                                
                             if response.authorized is True:
                                 service_client.session_start(username, auth_request_id)
-                                return render_template('dashboard.html', isLogIn=True)
+                                return render_template('dashboard.html', isLogIn=True, users=users)
                             else:
-                                return render_template('dashboard.html', isLogIn=False)
+                                return render_template('dashboard.html', isLogIn=False, users=users)
                         else:
                             sleep(1)
                 except RequestTimedOut:
