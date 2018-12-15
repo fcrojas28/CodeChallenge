@@ -42,8 +42,6 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login():
-    print 'Inside login'
-
     form = LoginForm(request.form)
     username = request.form['username']
 
@@ -79,6 +77,23 @@ def contact():
     print "inside the contact controller"
     return render_template('contact.html')
 
+@app.route('/webhook')
+def webhook():
+    print 'Inside login'
+    print '###############'
+    print 'request data'
+    print request.data
+    print '###############'
+    print 'request headers'
+    print request.headers
+    print '###############'
+    print 'request method'
+    print request.method
+    print '###############'
+    print 'request path'
+    print request.path
+    return "webhook page"
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
