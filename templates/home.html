@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% extends 'layout.html' %}
+
+
+{% block body %}
+
+    <div class="jumbotron text-center">
+        <h1>Welcome to my Code Challenge</h1>
+        <p class="lead">
+            This application will be using the LaunchKey Authenticator framework for user authentication
+        </p>
+    </div>
+ 
+    {% from "_loginForm.html" import render_field %}
+    <form action="{{ url_for('login') }}" method="post">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.username, class="form-control", placeholder="username") }}
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+
+    
+{% endblock %}

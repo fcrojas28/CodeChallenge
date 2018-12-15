@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+{% extends 'layout.html' %}
+
+{% block body %}
+    {% if isLogIn %}
+        <div class="alert alert-success" role="alert">
+            You have been successfully logged in
+        </div>
+    {% endif %}
+    
+    {% if isLogIn == False %}
+        <div class="alert alert-danger" role="alert">
+            Authorization Denied
+        </div>
+    {% endif %}
+
+{% endblock %}
