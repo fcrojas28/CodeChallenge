@@ -4,6 +4,7 @@ from wtforms import StringField, SubmitField, validators
 from wtforms.validators import ValidationError
 from launchkey.factories import ServiceFactory, OrganizationFactory
 from launchkey.exceptions import RequestTimedOut, EntityNotFound
+from launchkey.entities.service import AuthorizationResponse, SessionEndRequest
 from time import sleep
 import re
 
@@ -77,7 +78,8 @@ def contact():
     print "inside the contact controller"
     return render_template('contact.html')
 
-@app.route('/webhook')
+        
+@app.route('/webhook', methods = ['POST'])
 def webhook():
     print 'Inside login'
     print '###############'
