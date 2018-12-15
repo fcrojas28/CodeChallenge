@@ -6,15 +6,22 @@ from launchkey.factories import ServiceFactory, OrganizationFactory
 from launchkey.exceptions import RequestTimedOut, EntityNotFound
 from launchkey.entities.service import AuthorizationResponse, SessionEndRequest
 from time import sleep
+from logging import FileHandler, WARNING
 import sqlite3
 import datetime
-import re
+import re, traceback
 
 DATABASE = 'users.db'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = 'not so secret key'
+
+#if not app.debug:
+myFileHandler = FileHandler('errorlog.txt')
+myFileHandler.setLevel(WARNING)
+app.logger.addHandler(myFileHandler)
+    
 
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -91,10 +98,12 @@ def login():
                                 return render_template('dashboard.html', isLogIn=False, users=users)
                         else:
                             sleep(1)
-                except RequestTimedOut:
-                    return 'Timed Out. Please try again.'
-        except EntityNotFound:
-            return 'Sorry, User cannot be found. (The \'service_client.get_authorization_response\' throws an error when the user cannot be found, so I am catching this error (launchkey.exceptions.EntityNotFound) and displaying a more friendly message )'
+                except RequestTimedOut as e:
+                    errorMsg = {'msg' : 'Timed Out. Please try again.', 'stackTrace' : traceback.format_exc()}
+                    return render_template('home.html', form=form, errorMsg=errorMsg)
+        except EntityNotFound as e:
+            errorMsg = {'msg' : 'Sorry, this username cannot be found.', 'stackTrace' : traceback.format_exc()}
+            return render_template('home.html', form=form, errorMsg=errorMsg)
 
     return render_template('home.html', form=form)
 

@@ -17,6 +17,17 @@
         {{ render_field(form.username, class="form-control", placeholder="username") }}
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
     </form>
+    
+    {% if errorMsg %}
+        <div class="alert alert-warning" role="alert">
+            {{ errorMsg.msg }}
+        </div>
+
+        <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#stackMsg">See stack trace</button>
+        <div id="stackMsg" class="collapse">
+            {{ errorMsg.stackTrace }}
+        </div>
+    {% endif %}
 
     
 {% endblock %}
