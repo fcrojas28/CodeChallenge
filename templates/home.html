@@ -16,7 +16,7 @@
             <div class='col-md-3'></div>
             <div class="col-md-6">
                 <div class="login-box well">
-                    <legend>Account Login </legend>
+                    <h1 style="text-align:center">Account Login </h1>
                     {% from "_loginForm.html" import render_field %}
                     <form action="{{ url_for('login') }}" method="post" id="logInForm">
                         {{ form.hidden_tag() }}
@@ -34,6 +34,7 @@
                             {{ errorMsg.stackTrace }}
                         </div>
                     {% endif %}
+                    <br/>
                 </div>
             </div>
             <div class='col-md-3'></div>

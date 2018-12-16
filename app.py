@@ -2,14 +2,16 @@ from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, validators
 from wtforms.validators import ValidationError
-from launchkey.factories import OrganizationFactory
 from launchkey.exceptions import RequestTimedOut, EntityNotFound
-from launchkey.entities.service import AuthorizationResponse, SessionEndRequest
+from launchkey.factories.service import ServiceFactory
+#from launchkey.entities.service import AuthorizationResponse, SessionEndRequest  # this is for the webhook
 from time import sleep
-from logging import FileHandler, WARNING
 import sqlite3
 import datetime
 import re, traceback
+import platform
+
+print(platform.python_version())
 
 DATABASE = 'users.db'
 
@@ -17,21 +19,19 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = 'not so secret key'
 
-#if not app.debug:
-myFileHandler = FileHandler('errorlog.txt')
-myFileHandler.setLevel(WARNING)
-app.logger.addHandler(myFileHandler)
-
 organization_id = "2cd1360e-ff2e-11e8-911c-0a3c3cadd4fd"
 organization_private_key = open('organization_private_key.key').read()
 directory_id = "0172917a-ff69-11e8-ae69-4a5e312d9ab1"
 service_id = "b3f8ddb2-ff33-11e8-871a-4a5e312d9ab1"
 service_private_key = open('service_private_key.key').read()  
 
-#service_factory = ServiceFactory(service_id, service_private_key)  # no need
-organization_factory = OrganizationFactory(organization_id, organization_private_key)
-directory_client = organization_factory.make_directory_client(directory_id)
-service_client = organization_factory.make_service_client(service_id)  
+# per the instruction: use serviceFactory to create a serviceClient
+service_factory = ServiceFactory(service_id, service_private_key)
+service_client = service_factory.make_service_client()
+
+#organization_factory = OrganizationFactory(organization_id, organization_private_key) # dont need this for now leaving it here for reference
+#directory_client = organization_factory.make_directory_client(directory_id)           # dont need this for now leaving it here for reference
+#service_client = organization_factory.make_service_client(service_id)                 # dont need this for now leaving it here for reference
 
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -54,11 +54,14 @@ def index():
     form = LoginForm()
     return render_template('home.html', form=form)
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
     form = LoginForm(request.form)
+    
+    if request.method == 'GET':
+        return render_template('home.html', form=form)
+    
     username = request.form['username']
-
     if username and form.validate():
         try:
             auth_request_id = service_client.authorize(username)
@@ -90,9 +93,9 @@ def login():
                                 
                             if response.authorized is True:
                                 service_client.session_start(username, auth_request_id)
-                                return render_template('dashboard.html', isLogIn=True, users=users)
+                                return render_template('dashboard.html', isLogIn=True, users=users, username=username)
                             else:
-                                return render_template('dashboard.html', isLogIn=False, users=users)
+                                return render_template('dashboard.html', isLogIn=False, users=users, username=username)
                         else:
                             sleep(1)
                 except RequestTimedOut:
@@ -110,36 +113,33 @@ def about():
 
 @app.route('/contact')
 def contact():
-    print "inside the contact controller"
     return render_template('contact.html')
 
         
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
-    print 'Inside the Webhook Method'
-    print '###############'
-    print 'request data'
-    print request.data
-    print '###############'
-    print 'request headers'
-    print request.headers
-    print '###############'
-    print 'request method'
-    print request.method
-    print '###############'
-    print 'request path'
-    print request.path
+    print('Inside the Webhook Method')
+    print('###############')
+    print('###############')
+    print('request method')
+    print(request.method)
+    print('###############')
+    print('###############')
+    print('request path')
+    print(request.path)
     
-    package = service_client.handle_webhook(request.data, request.headers, request.method, request.path)
-    if isinstance(package, AuthorizationResponse):
-        if package.authorized is True:
-            # User accepted the auth, now create a session
-            doSomething = "access granted"
-        else:
-            # User denied the auth
-            doSomething = "access denied"
-    elif isinstance(package, SessionEndRequest):
-        doSomething = "log out"
+    doSomething = "testing the webhook"
+    
+#     package = service_client.handle_webhook(request.data, request.headers, request.method, request.path)
+#     if isinstance(package, AuthorizationResponse):
+#         if package.authorized is True:
+#             # User accepted the auth, now create a session
+#             doSomething = "access granted"
+#         else:
+#             # User denied the auth
+#             doSomething = "access denied"
+#     elif isinstance(package, SessionEndRequest):
+#         doSomething = "log out"
         
     return doSomething
 

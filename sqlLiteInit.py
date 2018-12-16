@@ -1,5 +1,4 @@
 import sqlite3 as lite
-import datetime
 
 con = lite.connect('users.db')
 
