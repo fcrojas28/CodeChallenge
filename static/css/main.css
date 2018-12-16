@@ -9,3 +9,23 @@ li {
     z-index:9999;
     background:url("https://www.creditmutuel.fr/cmne/fr/banques/webservices/nswr/images/loading.gif") no-repeat center center rgba(0,0,0,0.25)
 }
+
+
+.well{
+    background-color:#fff!important;
+    border-radius:0!important;
+    border:black solid 1px;
+}
+
+.well.login-box {
+    /*width:400px; */
+    border:#d1d1d1 solid 1px;
+    margin:0 auto;
+    margin-top:30px;
+}
+
+legend {
+  font-size:26px;
+  text-align:center;
+  font-weight:bold;
+}
