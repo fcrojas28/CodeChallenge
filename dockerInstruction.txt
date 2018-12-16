@@ -1,0 +1,52 @@
+Please note the IP of your docker instance when you launch Docker
+
+
+                        ##         .
+                  ## ## ##        ==
+               ## ## ## ## ##    ===
+           /"""""""""""""""""\___/ ===
+      ~~~ {~~ ~~~~ ~~~ ~~~~ ~~~ ~ /  ===- ~~~
+           \______ o           __/
+             \    \         __/
+              \____\_______/
+
+docker is configured to use the default machine with IP 192.168.99.100    -----> Here is the IP you need to write down
+For help getting started, check out the docs at https://docs.docker.com
+
+
+
+
+# This is the command to create an image using the 'Dockerfile' in the current web app directory
+docker build -t launchkey .   ### launchkey is the name of the image we are about to create
+
+# To create a container from the image created on the step above
+# run the following command:
+docker run -id -p 5000:5000 --name launchkeycontainer launchkey bash           ### launchkeycontainer is the name of the container
+
+# Now, we need to get inside the container and lunch the web app
+# I wanted to lunch the app automatically  but I tried using the CMD and ENTRYPOINT on the Dockfile
+# but they did not work, that is why we need to do this manually  
+docker exec -it launchkeycontainer bash
+
+# Once you are in the running container you should see something like this:  [root@93d44301b966 myapp]#
+# please run the following cmd to start the web app
+python /opt/myapp/app.py
+
+# Now launch you browser and try to hit the wep app from the docker container
+http://192.168.99.100:5000
+
+
+
+# Other Dockers Commands
+
+# View all docker images
+docker images
+
+# Viall all docker containers
+docker ps
+
+# To stop by the its name use the commad below
+docker stop launchkeycontainer
+
+# To remove the container use the command below
+docker rm launchkeycontainer
