@@ -12,10 +12,5 @@ RUN mkdir /opt/myapp
 WORKDIR /opt/myapp
 ADD . /opt/myapp
 
-# Define working directory.
-#WORKDIR /opt/myapp
+CMD ["python", "app.py"]
 
-# Define default command.
-#CMD ["python", "--version"]
-#CMD ["python", "/opt/myapp/app.py"]
-#ENTRYPOINT["python", "/opt/myapp/app.py"]

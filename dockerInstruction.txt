@@ -21,20 +21,15 @@ docker build -t launchkey .   ### launchkey is the name of the image we are abou
 
 # To create a container from the image created on the step above
 # run the following command:
-docker run -id -p 5000:5000 --name launchkeycontainer launchkey bash           ### launchkeycontainer is the name of the container
-
-# Now, we need to get inside the container and lunch the web app
-# I wanted to lunch the app automatically  but I tried using the CMD and ENTRYPOINT on the Dockfile
-# but they did not work, that is why we need to do this manually  
-docker exec -it launchkeycontainer bash
-
-# Once you are in the running container you should see something like this:  [root@93d44301b966 myapp]#
-# please run the following cmd to start the web app
-python /opt/myapp/app.py
+docker run -id -p 5000:5000 --name launchkeycontainer launchkey           ### launchkeycontainer is the name of the container
 
 # Now launch you browser and try to hit the wep app from the docker container
 http://192.168.99.100:5000
 
+
+# if you need to get into the container instance use the command below  
+# This step can be skip
+docker exec -it launchkeycontainer bash
 
 
 # Other Dockers Commands
