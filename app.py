@@ -52,14 +52,14 @@ class LoginForm(FlaskForm):
 @app.route('/')
 def index():
     form = LoginForm()
-    return render_template('home.html', form=form)
+    return render_template('home.html', form=form, pythonVer=platform.python_version())
 
 @app.route('/login', methods=['GET','POST'])
 def login():
     form = LoginForm(request.form)
     
     if request.method == 'GET':
-        return render_template('home.html', form=form)
+        return render_template('home.html', form=form, pythonVer=platform.python_version())
     
     username = request.form['username']
     if username and form.validate():
@@ -86,20 +86,28 @@ def login():
                                 
                             if response.authorized is True:
                                 service_client.session_start(username, auth_request_id)
-                                return render_template('dashboard.html', isLogIn=True, users=users, username=username)
+                                return render_template('dashboard.html', isLogIn=True, users=users, username=username, form= form)
                             else:
-                                return render_template('dashboard.html', isLogIn=False, users=users, username=username)
+                                return render_template('dashboard.html', isLogIn=False, users=users, username=username, form= form)
                         else:
                             sleep(1)
                 except RequestTimedOut:
                     errorMsg = {'msg' : 'Timed Out. Please try again.', 'stackTrace' : traceback.format_exc()}
-                    return render_template('home.html', form=form, errorMsg=errorMsg)
+                    return render_template('home.html', form=form, errorMsg=errorMsg, pythonVer=platform.python_version())
         except EntityNotFound:
             errorMsg = {'msg' : 'Sorry, this username cannot be found.', 'stackTrace' : traceback.format_exc()}
-            return render_template('home.html', form=form, errorMsg=errorMsg)
+            return render_template('home.html', form=form, errorMsg=errorMsg, pythonVer=platform.python_version())
 
-    return render_template('home.html', form=form)
+    return render_template('home.html', form=form, pythonVer=platform.python_version())
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    username = request.form['username']
+    service_client.session_end(username)
+    form = LoginForm()
+    return render_template('home.html', form=form, pythonVer=platform.python_version())
+    
+    
 @app.route('/about')
 def about():
     return render_template('about.html')

@@ -14,6 +14,23 @@
         </div>
     {% endif %}
     
+    <div class="container">
+        <div class="row">
+            <div class='col-md-3'></div>
+            <div class="col-md-6">
+                <div class="login-box well">
+                    <form action="{{ url_for('logout') }}" method="post" id="logOutForm">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" id="username" name="username" value={{ username }}></input>
+                        <button class="btn btn-lg btn-primary btn-block" type="submit" id="submitBtn">logout</button>
+                    </form>
+                    <br/>
+                </div>
+            </div>
+            <div class='col-md-3'></div>
+        </div> <!-- end of row -->
+    </div> <!-- end of container -->
+    
     <h1>User login history</h1>
     <h2>This is this user ({{ username }}) login activity. I am recording his/her activity in an SQLite database instance. 
     Feel free to explore the  SQLite file (users.db) in the roor directory to see every user action. 
