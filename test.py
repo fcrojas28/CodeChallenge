@@ -14,27 +14,27 @@ class FlaskTestCase(unittest.TestCase):
     
     def test_get_organization_private_key(self):
         organization_private_key = open('organization_private_key.key').read()
-        self.assertTrue(b'-----BEGIN RSA PRIVATE KEY-----' in organization_private_key)
+        self.assertTrue('-----BEGIN RSA PRIVATE KEY-----' in organization_private_key)
         
     def test_get_service_private_key(self):
         service_private_key = open('service_private_key.key').read() 
-        self.assertTrue(b'-----BEGIN RSA PRIVATE KEY-----' in service_private_key)
+        self.assertTrue('-----BEGIN RSA PRIVATE KEY-----' in service_private_key)
 
     def test_create_service_clien_successfully(self):
         service_client = service_factory.make_service_client()
-        self.assertTrue(b'<launchkey.' in str(service_client))
+        self.assertTrue('<launchkey.' in str(service_client))
     
     def test_get_auth_request_successfully(self):
         service_client = service_factory.make_service_client()
         auth_request_id = service_client.authorize("fcrojas28")
-        self.assertTrue(b'-' in auth_request_id)
+        self.assertTrue('-' in auth_request_id)
         
     def test_get_auth_request_with_user_not_found(self):
         service_client = service_factory.make_service_client()
         try:
             service_client.authorize("fcrojas28xxxx")
         except EntityNotFound as e:
-            self.assertTrue(b'Unable to find user' in str(e))
+            self.assertTrue('Unable to find user' in str(e))
         
     
 if __name__ == '__main__' :

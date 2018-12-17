@@ -73,17 +73,10 @@ def login():
                         if response is not None:
                             
                             # Write into the db the user activity
-                            if response.authorized is True:
-                                db = connect_db()
-                                db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "granted"))
-                                db.commit()
-                                db.close()
-                            else:
-                                db = connect_db()
-                                db = connect_db()
-                                db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "denied"))
-                                db.commit()
-                                db.close()
+                            db = connect_db()
+                            db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "granted" if response.authorized is True else "denied"))
+                            db.commit()
+                            db.close()
                             
                             # get all user activity from the DB
                             db = connect_db()
