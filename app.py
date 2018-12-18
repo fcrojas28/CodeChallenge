@@ -11,7 +11,7 @@ import datetime
 import re, traceback
 import platform
 
-
+# This is SQLite db file
 DATABASE = 'users.db'
 
 app = Flask(__name__)
@@ -28,21 +28,21 @@ service_private_key = open('service_private_key.key').read()
 service_factory = ServiceFactory(service_id, service_private_key)
 service_client = service_factory.make_service_client()
 
-#organization_factory = OrganizationFactory(organization_id, organization_private_key) # dont need this for now leaving it here for reference
-#directory_client = organization_factory.make_directory_client(directory_id)           # dont need this for now leaving it here for reference
-#service_client = organization_factory.make_service_client(service_id)                 # dont need this for now leaving it here for reference
+#organization_factory = OrganizationFactory(organization_id, organization_private_key) # I don't need this for now leaving it here for reference
+#directory_client = organization_factory.make_directory_client(directory_id)           # I don't need this for now leaving it here for reference
+#service_client = organization_factory.make_service_client(service_id)                 # I don't need this for now leaving it here for reference
 
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
     
-# Since there is a req when creating an user from Launchkey mobile app
-# i am making sure that validation is apply before submitting the auth request
+# Since there is a requirement when creating an user from Launchkey mobile app
+# I am making sure that this same requirement is apply to the user 
+# filed form in the app
 def validChar(form, field):
     regex = re.compile("[\s<>:;()@&\"/\']")
     match = regex.search(field.data)
     if match:
         raise ValidationError('Invalid Character <>:;()@&"/\' and no whitespaces')
-
 
 class LoginForm(FlaskForm):
     username = StringField("username", [validators.Length(min=4, max=46), validChar])
@@ -50,7 +50,7 @@ class LoginForm(FlaskForm):
 
 @app.route('/')
 def index():
-    form = LoginForm()
+    form = LoginForm(request.form)
     return render_template('home.html', form=form, pythonVer=platform.python_version())
 
 @app.route('/login', methods=['GET','POST'])
@@ -104,7 +104,7 @@ def login():
 def logout():
     username = request.form['username']
     service_client.session_end(username)
-    form = LoginForm()
+    form = LoginForm(request.form)
     return render_template('home.html', form=form, pythonVer=platform.python_version())
 
 
@@ -128,10 +128,14 @@ def about():
 def contact():
     return render_template('contact.html')
 
-        
+# This function will detect the webhook from the launchkey server
+# The authorization_request_id will be extract it from the request
+# and I will update the user request response from the server to
+# local database      
 @app.route('/webhook', methods=['POST'])
 def webhook():
     package = service_client.handle_webhook(request.data, request.headers)
+    actionFromWebhook="testing the webhook"
     
     db = connect_db()
     if isinstance(package, AuthorizationResponse):

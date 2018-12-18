@@ -20,9 +20,9 @@ class FlaskTestCase(unittest.TestCase):
         service_private_key = open('service_private_key.key').read() 
         self.assertTrue('-----BEGIN RSA PRIVATE KEY-----' in service_private_key)
 
-    def test_create_service_clien_successfully(self):
+    def test_create_service_client_successfully(self):
         service_client = service_factory.make_service_client()
-        self.assertTrue('<launchkey.' in str(service_client))
+        self.assertTrue('ServiceClient' in str(service_client))
     
     def test_get_auth_request_successfully(self):
         service_client = service_factory.make_service_client()
@@ -35,6 +35,9 @@ class FlaskTestCase(unittest.TestCase):
             service_client.authorize("fcrojas28xxxx")
         except EntityNotFound as e:
             self.assertTrue('Unable to find user' in str(e))
+            
+    def test_create_service_factory_successfully(self):
+        self.assertTrue('ServiceFactory' in str(service_factory))  
         
     
 if __name__ == '__main__' :
