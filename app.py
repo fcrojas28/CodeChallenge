@@ -4,14 +4,13 @@ from wtforms import StringField, SubmitField, validators
 from wtforms.validators import ValidationError
 from launchkey.exceptions import RequestTimedOut, EntityNotFound
 from launchkey.factories.service import ServiceFactory
-#from launchkey.entities.service import AuthorizationResponse, SessionEndRequest  # this is for the webhook
+from launchkey.entities.service import AuthorizationResponse, SessionEndRequest
 from time import sleep
 import sqlite3
 import datetime
 import re, traceback
 import platform
 
-print(platform.python_version())
 
 DATABASE = 'users.db'
 
@@ -65,6 +64,7 @@ def login():
     if username and form.validate():
         try:
             auth_request_id = service_client.authorize(username)
+            
             if auth_request_id:
                 response = None
                 try:
@@ -74,21 +74,21 @@ def login():
                             
                             # Write into the db the user activity
                             db = connect_db()
-                            db.execute("INSERT INTO users VALUES(?,?,?)", (username, datetime.datetime.now(), "granted" if response.authorized is True else "denied"))
+                            db.execute("INSERT INTO users VALUES(?,?,?,?,?,?)", (username, auth_request_id, datetime.datetime.now(), "granted" if response.authorized is True else "denied",None,None))
                             db.commit()
                             db.close()
                             
                             # get all user activity from the DB
                             db = connect_db()
-                            myResultSet = db.execute("SELECT username, dt, access FROM users WHERE username=:targetUsername",{'targetUsername':username})
-                            users = [dict(username=row[0],dateTime=row[1],access=row[2]) for row in myResultSet.fetchall()]
+                            myResultSet = db.execute("SELECT username, auth_req_id, dt, access, webhook_acess_granted_dt, webhook_acess_denied_dt FROM users WHERE username=:targetUsername",{'targetUsername':username})
+                            users = [dict(username=row[0],userReqId=row[1],dateTime=row[2],access=row[3],webhookGranted=row[4],webhookDenied=row[5]) for row in myResultSet.fetchall()]
                             db.close()
                                 
                             if response.authorized is True:
                                 service_client.session_start(username, auth_request_id)
-                                return render_template('dashboard.html', isLogIn=True, users=users, username=username, form= form)
+                                return render_template('dashboard.html', isLogIn=True, users=users, username=username, form=form)
                             else:
-                                return render_template('dashboard.html', isLogIn=False, users=users, username=username, form= form)
+                                return render_template('dashboard.html', isLogIn=False, users=users, username=username, form=form)
                         else:
                             sleep(1)
                 except RequestTimedOut:
@@ -106,7 +106,19 @@ def logout():
     service_client.session_end(username)
     form = LoginForm()
     return render_template('home.html', form=form, pythonVer=platform.python_version())
-    
+
+
+@app.route('/dashboard', methods=['POST'])
+def dashboard():
+    username = request.form['username']
+    isLogInAsString = request.form['islogin']
+    db = connect_db()
+    myResultSet = db.execute("SELECT username, auth_req_id, dt, access, webhook_acess_granted_dt, webhook_acess_denied_dt FROM users WHERE username=:targetUsername",{'targetUsername':username})
+    users = [dict(username=row[0],userReqId=row[1],dateTime=row[2],access=row[3],webhookGranted=row[4],webhookDenied=row[5]) for row in myResultSet.fetchall()]
+    db.close()
+    form = LoginForm(request.form)
+    return render_template('dashboard.html', isLogIn=str_to_bool(isLogInAsString), users=users, username=username, form=form)
+
     
 @app.route('/about')
 def about():
@@ -117,33 +129,34 @@ def contact():
     return render_template('contact.html')
 
         
-@app.route('/webhook', methods=['GET', 'POST'])
+@app.route('/webhook', methods=['POST'])
 def webhook():
-    print('Inside the Webhook Method')
-    print('###############')
-    print('###############')
-    print('request method')
-    print(request.method)
-    print('###############')
-    print('###############')
-    print('request path')
-    print(request.path)
+    package = service_client.handle_webhook(request.data, request.headers)
     
-    doSomething = "testing the webhook"
+    db = connect_db()
+    if isinstance(package, AuthorizationResponse):
+        if package.authorized is True:
+            # User accepted the auth, now create a session
+            actionFromWebhook = "webhook-access-granted"
+            db.execute("UPDATE users SET webhook_acess_granted_dt=? WHERE auth_req_id=?", (datetime.datetime.now(),package.authorization_request_id))
+        else:
+            # User denied the auth
+            actionFromWebhook = "webhook-access-denied"
+            db.execute("UPDATE users SET webhook_acess_denied_dt=? WHERE auth_req_id=?", (datetime.datetime.now(),package.authorization_request_id))
+    elif isinstance(package, SessionEndRequest):
+        actionFromWebhook = "webhook-log-out"
     
-#     package = service_client.handle_webhook(request.data, request.headers, request.method, request.path)
-#     if isinstance(package, AuthorizationResponse):
-#         if package.authorized is True:
-#             # User accepted the auth, now create a session
-#             doSomething = "access granted"
-#         else:
-#             # User denied the auth
-#             doSomething = "access denied"
-#     elif isinstance(package, SessionEndRequest):
-#         doSomething = "log out"
-        
-    return doSomething
+    
+    db.commit()
+    db.close() 
+    
+    return actionFromWebhook
 
+def str_to_bool(strToEval):
+    if strToEval == 'True':
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")

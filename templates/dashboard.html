@@ -39,14 +39,18 @@
         <thead>
             <tr>
                 <th scope="col">Username</th>
+                <th scope="col">User Req Id</th>
                 <th scope="col">Date and Time</th>
                 <th scope="col">Access</th>
+                <th scope="col">Webhook Access Granted</th>
+                <th scope="col">Webhook Access Denied</th>
             </tr>
         </thead>
         {% for user in users %}
         <tbody>
             <tr>
                 <td>{{ user.username }}</td>
+                <td>{{ user.userReqId }}</td>
                 <td>{{ user.dateTime }}</td>
                 
                 {% if user.access == "granted" %}
@@ -55,9 +59,18 @@
                 <td><font color="red">{{ user.access }}</font></td>
                 {% endif %}
                 
+                <td>{{ user.webhookGranted }}</td> 
+                <td>{{ user.webhookDenied }}</td>
             </tr>
         </tbody>
         {% endfor %}
     </table>
+    
+    <form action="{{ url_for('dashboard') }}" method="post" id="dashboard">
+        <input type="hidden" id="username" name="username" value={{ username }}></input>
+        <input type="hidden" id="islogin" name="islogin" value={{ isLogIn }}></input>
+        <button class="btn btn-secondary btn-sm" type="submit" id="dashsubmitBtn">Refresh</button>
+    </form>
 
+    <h5>Click refresh to update the data from the webhook columns since at the time the data was loaded most likely the webhook data for the last activity was not available</h5>
 {% endblock %}
